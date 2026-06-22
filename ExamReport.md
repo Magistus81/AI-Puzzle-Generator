@@ -1,70 +1,105 @@
-# Exam Report: AI Puzzle Generator
+# SoftUni AI-Assisted Development Exam Report: AI Puzzle Generator
 
 ## Project Idea and Requirements
 
-AI Puzzle Generator is a Windows Forms desktop application that lets the user upload an image and generate a puzzle from it. The player can choose a puzzle size, move pieces with the mouse, adjust the last selected piece with the keyboard, pause the game, and save completion records.
+AI Puzzle Generator is a C# Windows Forms desktop application that creates a puzzle from a user-selected image. The user can upload an image, choose a puzzle size, generate pieces, drag and connect them, pause the game, and save top completion times.
+
+The project is presented as an AI-assisted mini-app developed iteratively with Codex as the main implementation and refactoring tool. ChatGPT was used for planning, prompt design, review, and exam alignment.
 
 Main requirements:
 
-- Keep the project as a C# Windows Forms desktop application.
-- Preserve the established gameplay behavior.
-- Organize the application into a clean Visual Studio project structure.
-- Store puzzle pieces and groups as model classes.
-- Move JSON score persistence into a service.
-- Move time formatting into a helper service.
-- Provide project documentation and manual testing evidence for an exam submission.
+- Keep the application as a C# Windows Forms desktop project.
+- Preserve the gameplay behavior.
+- Support image upload, preview, puzzle generation, dragging, snapping, keyboard movement, pause/resume, timer, completion detection, and top-time persistence.
+- Organize the project into clear modules suitable for a small exam submission.
+- Document the development process, testing strategy, AI tools used, and working system evidence.
 
-## System Architecture - Modules
+Repository: [https://github.com/Magistus81/AI-Puzzle-Generator](https://github.com/Magistus81/AI-Puzzle-Generator)
 
-### UI Layer
+## System Architecture – Modules
 
-The UI layer is implemented in `PuzzleForm`. It creates the form controls, handles user events, displays the uploaded image preview, shows timer and top-time labels, and keeps the WinForms layout simple and consistent.
+The application uses a simple WinForms architecture. Most interactive gameplay remains in the form because the logic depends on `PictureBox` controls, mouse events, keyboard events, and WinForms timers.
 
-### Image Processing and Puzzle Generation
-
-This module scales the uploaded image to the puzzle panel, splits it into equal rectangular pieces, assigns each piece a correct position, and creates the `PictureBox` controls used during play.
-
-### Puzzle Piece Movement and Snapping Logic
-
-Mouse drag logic moves a selected piece and its connected group. Adjacent pieces are detected by grid position and screen position. If two pieces are close enough, their groups are merged. Correctly placed groups are locked in position.
-
-### Game State, Timer and Pause/Resume
-
-The form tracks whether the game is active or paused. A WinForms timer updates elapsed time once per second. Pausing stops the timer and hides all puzzle pieces; resuming shows the pieces again and restarts the timer.
-
-### Score Persistence
-
-`ScoreService` loads and saves the top completion times from `TopTimes.json` using Newtonsoft.Json. It also keeps only the best five times for each puzzle size.
-
-### Testing and Validation
-
-Testing is mainly manual because the application behavior depends on WinForms UI interactions, image selection dialogs, drag movement, and visual completion. Build validation is done with `dotnet build`.
+- UI Layer: `PuzzleForm` creates the form controls, handles events, displays the image preview, shows the timer, and updates top-time labels.
+- Image Processing and Puzzle Generation: the uploaded image is scaled to the puzzle area, split into equal rectangular pieces, and assigned correct grid positions.
+- Puzzle Piece Movement and Snapping Logic: pieces are dragged with the mouse, connected pieces move as groups, nearby adjacent pieces snap together, and correctly placed groups are locked.
+- Game State, Timer and Pause/Resume: the form tracks active and paused states, updates elapsed time, and hides puzzle pieces while paused.
+- Score Persistence: `ScoreService` loads and saves the best five completion times per puzzle size in `TopTimes.json`.
+- Testing and Validation: validation is manual, supported by build checks and screenshots of the working app.
 
 ## Development Process per Module
 
 ### UI Layer
 
-The form layout and event handlers are kept in `PuzzleForm` to avoid unnecessary redesign. The entry point is placed in `Program.cs`, matching a normal Visual Studio WinForms project.
+Approach and reasoning: The UI was kept as a straightforward WinForms interface because the exam goal is a functional desktop mini-app, not a visual redesign. Controls are created in `PuzzleForm`, and the layout remains simple and easy to test.
+
+Step-by-step workflow: create the main form, add upload/generate/pause controls, add the preview area, add the puzzle panel, add labels for timer and top times, then connect button, mouse, keyboard, and form-closing events.
+
+Testing strategy: run the app, verify all controls appear, upload an image, generate a puzzle, switch puzzle sizes, pause/resume, and confirm top-time labels update.
+
+AI tool choice: Codex was used for project structuring, WinForms refactoring, and documentation updates. ChatGPT was used to review the project description and align it with exam expectations.
+
+Example prompt or interaction: "Keep this as a C# WinForms application, preserve behavior, and organize the project into a clean Visual Studio structure."
 
 ### Image Processing and Puzzle Generation
 
-The image scaling and splitting logic is kept focused inside the puzzle generation workflow. The generated puzzle pieces use the separate `PuzzlePiece` model.
+Approach and reasoning: The image is resized to fit the puzzle panel while keeping its aspect ratio. It is then split into rows and columns based on the selected puzzle size. Each generated piece keeps its image, correct position, and grid position.
+
+Step-by-step workflow: read the selected puzzle size, scale the uploaded bitmap, calculate piece width and height, clone rectangular image sections, create `PictureBox` controls, create `PuzzlePiece` objects, and shuffle/display them.
+
+Testing strategy: upload different image sizes, generate 3x3, 4x4, 5x5, 8x8, and 10x10 puzzles, and visually verify that pieces are created and displayed.
+
+AI tool choice: Codex helped keep the generation logic inside the form while separating the `PuzzlePiece` and `PuzzleGroup` models for clearer structure.
+
+Example prompt or interaction: "Move the puzzle model classes into separate files, but keep the puzzle generation behavior unchanged."
 
 ### Puzzle Piece Movement and Snapping Logic
 
-Drag, keyboard movement, snapping, group merging, and placement checks were preserved in the form code because they are tightly connected to UI controls and mouse events.
+Approach and reasoning: Pieces are moved with mouse drag events. When pieces are adjacent in the grid and close enough on screen, their groups are merged. Correctly placed groups snap to their final positions and become locked.
+
+Step-by-step workflow: detect mouse down on a piece, store the selected piece, bring its group to the front, calculate movement delta during dragging, move the whole group, check for adjacent pieces on mouse up, merge groups if needed, then check placement.
+
+Testing strategy: drag individual pieces, snap two adjacent pieces, drag connected groups, place a group near its correct position, and verify locked pieces cannot be moved.
+
+AI tool choice: Codex helped add the stabilization fix for visual flickering while preserving the existing PictureBox-based rendering approach.
+
+Example prompt or interaction: "Reduce flickering when dragging connected puzzle pieces by using a double-buffered panel and batched group movement updates without rewriting rendering."
 
 ### Game State, Timer and Pause/Resume
 
-The timer and pause/resume behavior is retained. Time display strings were moved into `TimeFormatter` so repeated formatting logic is not duplicated in the form.
+Approach and reasoning: A WinForms timer tracks elapsed seconds while the game is active. Pause/resume is handled by stopping or restarting the timer and hiding or showing puzzle pieces.
+
+Step-by-step workflow: start the timer after puzzle generation, update the timer label each second, pause by stopping the timer and hiding pieces, resume by showing pieces and restarting the timer, then stop the timer when the puzzle is complete.
+
+Testing strategy: generate a puzzle, verify the timer increments, pause and confirm pieces are hidden and time stops, resume and confirm pieces return and time continues.
+
+AI tool choice: Codex helped extract repeated time formatting into `TimeFormatter` while leaving the game state behavior in `PuzzleForm`.
+
+Example prompt or interaction: "Extract time display formatting into a helper while preserving the timer and pause/resume behavior."
 
 ### Score Persistence
 
-The JSON loading, saving, and top-five score update behavior is handled by `ScoreService`. This keeps file persistence separate from UI code while still using a simple local `TopTimes.json` file.
+Approach and reasoning: Scores are stored locally because the project does not need accounts, cloud storage, or a database. `ScoreService` uses Newtonsoft.Json to load and save the best five times for each puzzle size.
+
+Step-by-step workflow: load existing top times at startup, update the current puzzle size list when a puzzle is completed, sort times, keep only the best five, save the JSON file, and refresh the displayed labels.
+
+Testing strategy: complete a small puzzle, verify `TopTimes.json` is created or updated, close and reopen the app, and confirm saved times are displayed.
+
+AI tool choice: Codex helped separate score persistence from UI logic while keeping the JSON-based behavior simple and transparent.
+
+Example prompt or interaction: "Extract JSON top-times logic into a service and keep the same local file persistence behavior."
 
 ### Testing and Validation
 
-Manual tests were defined around the main user workflows. The project was also prepared for Visual Studio build and command-line build with the .NET SDK.
+Approach and reasoning: The project depends heavily on visual and interactive behavior, so manual testing is the honest primary validation method. Build validation is used to confirm the Visual Studio project compiles.
+
+Step-by-step workflow: build the solution, run the app, follow the manual checklist, capture screenshots, check score persistence, and review documentation for exam readiness.
+
+Testing strategy: no automated UI tests were added. Manual checks cover upload, generation, movement, snapping, pause/resume, completion, and saved top times.
+
+AI tool choice: Codex helped prepare the manual checklist, build/run instructions, documentation, and final cleanup. ChatGPT supported prompt planning and review of exam structure.
+
+Example prompt or interaction: "Prepare a concise manual testing checklist and make the report suitable for the SoftUni AI-Assisted Development exam."
 
 ## Testing Strategy
 
@@ -72,40 +107,48 @@ Manual test checklist:
 
 - Upload a valid image.
 - Try generating without an image.
-- Generate each puzzle size.
-- Drag pieces.
-- Use keyboard movement.
-- Pause and resume.
+- Generate each puzzle size: 3x3, 4x4, 5x5, 8x8, and 10x10.
+- Drag individual pieces.
+- Drag connected groups.
+- Use keyboard arrow keys to move the last selected piece.
+- Pause and resume the game.
 - Complete a small 3x3 puzzle.
 - Verify `TopTimes.json` is created or updated.
 - Close and reopen the app and verify top times are loaded.
 
-Additional validation:
+Build validation:
 
-- Build the solution in Visual Studio.
-- Build the project with `dotnet build`.
-- Check that no required feature was removed during refactoring.
+- Open the solution in Visual Studio and build it.
+- Run `dotnet build` from the command line.
+
+No automated tests are claimed for this project. The main validation method is manual testing because the core behavior is interactive WinForms UI behavior.
 
 ## Challenges and Tool Comparison
 
-The main challenge was preserving gameplay behavior while improving the project structure. Most game logic was intentionally kept in `PuzzleForm` because a deeper architectural rewrite would increase risk and was not required for the exam goal.
+The main challenge was preserving gameplay behavior while improving project structure and documentation. A large rewrite would have increased risk, so the final design keeps the UI and puzzle interaction logic close to the WinForms controls.
 
-Codex was used as the main AI tool for implementation support, refactoring, project setup, documentation draft, and build validation. ChatGPT was used as a planning and review assistant for checking the module breakdown and preparing exam-friendly explanations.
+Another challenge was visual flickering while dragging connected puzzle pieces. The issue was reduced by using a custom double-buffered puzzle panel and batching group movement updates with layout suspension. This avoids a full custom rendering rewrite while improving the visible dragging behavior.
 
-Compared with manual-only development, AI assistance helped organize the project faster and identify clean module boundaries. The developer still needed to verify that the application stayed a WinForms desktop app and that required features were preserved.
+Codex was the main tool for implementation support, project structuring, refactoring, documentation, build validation, and the flicker reduction fix. ChatGPT was used for planning, prompt design, review, and exam alignment.
+
+Tool comparison:
+
+- Codex was best for working directly with the repository, editing files, applying refactors, and checking build results.
+- ChatGPT was useful for planning, improving prompts, reviewing explanations, and making the report match the SoftUni exam format.
+- Manual testing was still necessary because AI tools cannot fully verify visual dragging, snapping, and pause/resume behavior without the user checking the running desktop app.
 
 ## Working System Evidence
 
-Suggested evidence to add before submission:
+Screenshots are included in the repository:
 
-- Screenshot of uploaded image preview.
-- Screenshot of generated puzzle pieces.
-- Screenshot of pause/resume behavior.
-- Screenshot or JSON snippet showing saved top times.
-- Build output from Visual Studio or `dotnet build`.
+![Application start screen](docs/screenshots/start_app.jpg)
 
-Screenshots should be placed in `docs/screenshots/`.
+![Generated puzzle](docs/screenshots/generated_pzl.jpg)
 
-## Repository Link placeholder
+![Completed puzzle](docs/screenshots/end.jpg)
 
-Repository link: TODO
+These screenshots show the application running, puzzle generation, and a completed puzzle state. Additional evidence can include a local build result and a short manual testing screen recording if required by the exam submission process.
+
+## Repository Link
+
+[https://github.com/Magistus81/AI-Puzzle-Generator](https://github.com/Magistus81/AI-Puzzle-Generator)
