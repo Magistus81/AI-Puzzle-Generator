@@ -119,7 +119,7 @@ Manual test checklist:
 Build validation:
 
 - Open the solution in Visual Studio and build it.
-- Run `dotnet build` from the command line.
+- Run the application from Visual Studio and verify that the main screen loads successfully.
 
 No automated tests are claimed for this project. The main validation method is manual testing because the core behavior is interactive WinForms UI behavior.
 
@@ -147,7 +147,7 @@ Screenshots are included in the repository:
 
 ![Completed puzzle](docs/screenshots/end.jpg)
 
-These screenshots show the application running, puzzle generation, and a completed puzzle state. Additional evidence can include a local build result and a short manual testing screen recording if required by the exam submission process.
+These screenshots show the application start screen, a generated puzzle, and a completed puzzle state with a recorded top result.
 
 ## Repository Link
 
