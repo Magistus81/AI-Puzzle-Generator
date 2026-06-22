@@ -1,0 +1,9 @@
+.vs/
+**/bin/
+**/obj/
+*.user
+*.suo
+*.cache
+TopTimes.json
+PuzzleCode.txt
+Project-Assignment.docx
